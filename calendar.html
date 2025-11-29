@@ -3,24 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adding to Calendar...</title>
+    
+    <!-- Meta Tags for WhatsApp Preview Card -->
+    <meta property="og:title" content="📅 Save Order to Calendar">
+    <meta property="og:description" content="Click here to add this schedule to your device.">
+    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1024px-Google_Calendar_icon_%282020%29.svg.png">
+    
+    <title>Save to Calendar</title>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 40px; background: #f2f2f7; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { font-size: 22px; margin-bottom: 10px; }
-        p { color: #666; font-size: 14px; }
-        .btn { background: #007AFF; color: white; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+        body { font-family: -apple-system, sans-serif; text-align: center; padding: 40px; background: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;}
+        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
+        p { color: #666; font-size: 16px; margin-bottom: 30px; }
+        .btn { background: #007AFF; color: white; padding: 18px 40px; border-radius: 14px; text-decoration: none; font-weight: bold; font-size: 18px; display: block; transition: 0.2s;}
+        .btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>📅 Save to Device</h1>
-        <p id="info">Preparing your calendar event...</p>
-        <a id="downloadBtn" href="#" class="btn">Click to Add to Calendar</a>
+        <h1>📅 Save Schedule</h1>
+        <p id="info">Preparing file...</p>
+        <a id="downloadBtn" href="#" class="btn">Add to Calendar App</a>
     </div>
 
     <script>
-        // 1. Get Params
         const params = new URLSearchParams(window.location.search);
         const title = params.get('title') || "Reminder";
         const desc = params.get('desc') || "";
@@ -33,15 +39,13 @@
         }
 
         if (dateStr) {
-            // Calculate Start and End (Default 1 hour duration)
             const startDate = new Date(dateStr);
-            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // +1 Hour
+            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // Default 1 Hour
 
-            // Build ICS File
             const icsData = [
                 "BEGIN:VCALENDAR",
                 "VERSION:2.0",
-                "PRODID:-//HQReminder//EN",
+                "PRODID:-//HQSystem//EN",
                 "BEGIN:VEVENT",
                 "UID:" + Date.now() + "@hq",
                 "DTSTAMP:" + formatICSDate(new Date()),
@@ -53,7 +57,6 @@
                 "END:VCALENDAR"
             ].join("\r\n");
 
-            // Create Download Blob
             const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
             const url = window.URL.createObjectURL(blob);
             
@@ -61,8 +64,8 @@
             btn.href = url;
             btn.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".ics";
             
-            // Auto-click for instant prompt
-            setTimeout(() => btn.click(), 500);
+            // Auto click
+            setTimeout(() => btn.click(), 800);
         }
     </script>
 </body>
