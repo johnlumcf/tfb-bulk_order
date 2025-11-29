@@ -3,80 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add to Calendar</title>
+    <title>Sync Calendar</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
-        h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 24px; font-weight: 800; }
-        .location { color: #8e8e93; font-weight: 600; font-size: 14px; text-transform: uppercase; margin-bottom: 20px; display: block; }
-        .details { background: #f5f5f7; border-radius: 12px; padding: 15px; text-align: left; font-size: 14px; color: #333; margin-bottom: 25px; line-height: 1.4; }
-        .btn { background-color: #007AFF; color: white; padding: 18px 0; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 18px; display: block; width: 100%; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.96); opacity: 0.9; }
-        .footer { margin-top: 20px; font-size: 12px; color: #aaa; }
+        body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f2f2f7; margin: 0; padding: 20px; text-align: center; }
+        .card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 22px; }
+        p { color: #8e8e93; margin-bottom: 30px; font-size: 15px; }
+        
+        /* THE BUTTON */
+        .btn { 
+            background: #007AFF; color: white; padding: 18px 0; 
+            border-radius: 16px; text-decoration: none; font-weight: 700; 
+            display: block; width: 100%; font-size: 18px; 
+            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        }
+        .btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1 id="title">Loading...</h1>
-        <span id="loc" class="location"></span>
+        <p id="loc">Please wait</p>
         
-        <div class="details" id="desc">
-            Loading details...
-        </div>
-
+        <!-- This button will point to a Real File on Agical Servers -->
         <a id="downloadBtn" href="#" class="btn">Add to Calendar</a>
-        <div class="footer">Tap the button above to sync</div>
     </div>
 
     <script>
-        // 1. Get Parameters from URL
+        // 1. Get Details from URL
         const params = new URLSearchParams(window.location.search);
         const title = params.get('t') || "Order";
-        const desc = params.get('d') || "No details";
-        const loc = params.get('loc') || "General";
+        const desc = params.get('d') || "";
+        const loc = params.get('loc') || "";
         const dateStr = params.get('dt');
 
-        // 2. Update UI
+        // 2. Update Text on Screen
         document.getElementById('title').innerText = title;
-        document.getElementById('loc').innerText = "📍 " + loc;
-        document.getElementById('desc').innerText = desc;
+        document.getElementById('loc').innerText = loc ? "📍 " + loc : "Syncing...";
 
-        // 3. Helper to format date for ICS (YYYYMMDDTHHmmssZ)
-        function formatICS(date) {
-            return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        }
+        // 3. Format Date for Agical API
+        // We need 1 Hour duration calculated
+        let startIso = "";
+        let endIso = "";
 
-        // 4. Generate ICS File
         if (dateStr) {
             const startDate = new Date(dateStr);
-            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // 1 Hour Duration
-
-            const icsContent = [
-                "BEGIN:VCALENDAR",
-                "VERSION:2.0",
-                "PRODID:-//HQSystem//EN",
-                "BEGIN:VEVENT",
-                "UID:" + Date.now() + "@hqorder",
-                "DTSTAMP:" + formatICS(new Date()),
-                "DTSTART:" + formatICS(startDate),
-                "DTEND:" + formatICS(endDate),
-                "SUMMARY:" + title,
-                "DESCRIPTION:" + desc,
-                "LOCATION:" + loc,
-                "END:VEVENT",
-                "END:VCALENDAR"
-            ].join("\r\n");
-
-            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-            const url = window.URL.createObjectURL(blob);
+            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // +1 Hour
             
-            const btn = document.getElementById('downloadBtn');
-            btn.href = url;
-            btn.download = title.replace(/[^a-z0-9]/gi, '_') + ".ics";
-            
-            // Note: We do NOT auto-click. Mobile browsers require a manual tap.
+            // Format: YYYY-MM-DDTHH:mm:ss
+            startIso = startDate.toISOString().split('.')[0];
+            endIso = endDate.toISOString().split('.')[0];
         }
+
+        // 4. Construct the Real File Link (Agical API)
+        // This creates a physical .ics file on their server that phones TRUST.
+        const agicalUrl = `https://agical.io/daily/event` +
+                          `?summary=${encodeURIComponent(title)}` +
+                          `&description=${encodeURIComponent(desc)}` +
+                          `&location=${encodeURIComponent(loc)}` +
+                          `&startdt=${encodeURIComponent(startIso)}` +
+                          `&enddt=${encodeURIComponent(endIso)}`;
+
+        // 5. Attach to Button
+        document.getElementById('downloadBtn').href = agicalUrl;
+
     </script>
 </body>
 </html>
