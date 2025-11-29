@@ -3,69 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Meta Tags for WhatsApp Preview Card -->
-    <meta property="og:title" content="📅 Save Order to Calendar">
-    <meta property="og:description" content="Click here to add this schedule to your device.">
-    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/1024px-Google_Calendar_icon_%282020%29.svg.png">
-    
-    <title>Save to Calendar</title>
+    <title>Save Event</title>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 40px; background: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;}
-        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        h1 { font-size: 24px; margin-bottom: 10px; color: #333; }
-        p { color: #666; font-size: 16px; margin-bottom: 30px; }
-        .btn { background: #007AFF; color: white; padding: 18px 40px; border-radius: 14px; text-decoration: none; font-weight: bold; font-size: 18px; display: block; transition: 0.2s;}
-        .btn:active { transform: scale(0.98); }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { margin-bottom: 10px; color: #333; }
+        p { color: #666; margin-bottom: 20px; }
+        .btn { background: #25D366; color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>📅 Save Schedule</h1>
-        <p id="info">Preparing file...</p>
-        <a id="downloadBtn" href="#" class="btn">Add to Calendar App</a>
+    <div class="container">
+        <h1 id="title">Event</h1>
+        <p>Downloading calendar file...</p>
+        <a id="btn" href="#" class="btn">Click to Save</a>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const title = params.get('title') || "Reminder";
-        const desc = params.get('desc') || "";
-        const dateStr = params.get('date');
+        const title = params.get('t') || "Event";
+        const desc = params.get('d') || "";
+        const dateStr = params.get('dt');
 
-        document.getElementById('info').innerText = title;
+        document.getElementById('title').innerText = title;
 
-        function formatICSDate(d) {
-            return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-        }
+        function fmt(d) { return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"; }
 
         if (dateStr) {
-            const startDate = new Date(dateStr);
-            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // Default 1 Hour
+            const s = new Date(dateStr);
+            const e = new Date(s.getTime() + 3600000); // Default +1 Hour
 
-            const icsData = [
-                "BEGIN:VCALENDAR",
-                "VERSION:2.0",
-                "PRODID:-//HQSystem//EN",
+            const ics = [
+                "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//HQSystem//EN",
                 "BEGIN:VEVENT",
                 "UID:" + Date.now() + "@hq",
-                "DTSTAMP:" + formatICSDate(new Date()),
-                "DTSTART:" + formatICSDate(startDate),
-                "DTEND:" + formatICSDate(endDate),
+                "DTSTAMP:" + fmt(new Date()),
+                "DTSTART:" + fmt(s),
+                "DTEND:" + fmt(e),
                 "SUMMARY:" + title,
                 "DESCRIPTION:" + desc,
-                "END:VEVENT",
-                "END:VCALENDAR"
+                "END:VEVENT", "END:VCALENDAR"
             ].join("\r\n");
 
-            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
             const url = window.URL.createObjectURL(blob);
+            const b = document.getElementById('btn');
+            b.href = url;
+            b.download = title.replace(/[^a-z0-9]/gi, '_') + ".ics";
             
-            const btn = document.getElementById('downloadBtn');
-            btn.href = url;
-            btn.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".ics";
-            
-            // Auto click
-            setTimeout(() => btn.click(), 800);
+            setTimeout(() => b.click(), 500);
         }
     </script>
 </body>
