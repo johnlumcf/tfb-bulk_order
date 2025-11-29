@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Save Event</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { margin-bottom: 10px; color: #333; }
-        p { color: #666; margin-bottom: 20px; }
-        .btn { background: #25D366; color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; }
+        body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f2f2f7; margin: 0; padding: 20px; text-align: center; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 22px; }
+        p { color: #8e8e93; margin-bottom: 25px; font-size: 15px; }
+        .btn { background: #007AFF; color: white; padding: 16px 0; border-radius: 14px; text-decoration: none; font-weight: 600; display: block; width: 100%; font-size: 17px; }
+        .btn:active { opacity: 0.8; transform: scale(0.98); }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="card">
         <h1 id="title">Event</h1>
-        <p>Downloading calendar file...</p>
-        <a id="btn" href="#" class="btn">Click to Save</a>
+        <p id="loc">Loading...</p>
+        <a id="btn" href="#" class="btn">Add to Calendar</a>
     </div>
 
     <script>
@@ -24,17 +25,18 @@
         const title = params.get('t') || "Event";
         const desc = params.get('d') || "";
         const dateStr = params.get('dt');
-        // 🆕 NEW: Get Location
         const loc = params.get('loc') || ""; 
 
         document.getElementById('title').innerText = title;
+        document.getElementById('loc').innerText = loc ? "📍 " + loc : "";
 
         function fmt(d) { return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"; }
 
         if (dateStr) {
             const s = new Date(dateStr);
-            const e = new Date(s.getTime() + 3600000); // Default +1 Hour
+            const e = new Date(s.getTime() + 3600000); // 1 Hour Duration
 
+            // Create ICS content
             const ics = [
                 "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//HQSystem//EN",
                 "BEGIN:VEVENT",
@@ -44,17 +46,19 @@
                 "DTEND:" + fmt(e),
                 "SUMMARY:" + title,
                 "DESCRIPTION:" + desc,
-                "LOCATION:" + loc, // 🆕 Add Location to ICS
+                "LOCATION:" + loc,
                 "END:VEVENT", "END:VCALENDAR"
             ].join("\r\n");
 
             const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
             const url = window.URL.createObjectURL(blob);
+            
             const b = document.getElementById('btn');
             b.href = url;
             b.download = title.replace(/[^a-z0-9]/gi, '_') + ".ics";
             
-            setTimeout(() => b.click(), 500);
+            // Auto-trigger
+            setTimeout(() => b.click(), 1000);
         }
     </script>
 </body>
