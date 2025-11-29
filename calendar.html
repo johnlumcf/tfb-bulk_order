@@ -24,6 +24,8 @@
         const title = params.get('t') || "Event";
         const desc = params.get('d') || "";
         const dateStr = params.get('dt');
+        // 🆕 NEW: Get Location
+        const loc = params.get('loc') || ""; 
 
         document.getElementById('title').innerText = title;
 
@@ -42,6 +44,7 @@
                 "DTEND:" + fmt(e),
                 "SUMMARY:" + title,
                 "DESCRIPTION:" + desc,
+                "LOCATION:" + loc, // 🆕 Add Location to ICS
                 "END:VEVENT", "END:VCALENDAR"
             ].join("\r\n");
 
