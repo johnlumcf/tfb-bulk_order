@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saving Order to Calendar...</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f2f5; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #075e54; }
+        p { color: #555; }
+        button { background: #25D366; color: white; border: none; padding: 15px 30px; font-size: 16px; border-radius: 25px; cursor: pointer; margin-top: 20px;}
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>📅 Saving Order...</h2>
+        <p id="status">Please wait while we add this order to your calendar.</p>
+        <button onclick="generateICS()">Download Again</button>
+    </div>
+
+    <script>
+        // 1. Get Parameters from URL
+        const params = new URLSearchParams(window.location.search);
+        const title = params.get('title') || "Bulk Order";
+        const desc = params.get('desc') || "Order Details";
+        const start = params.get('start');
+        const end = params.get('end');
+
+        function formatToICSDate(dateStr) {
+            if (!dateStr) return new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+            let d = new Date(dateStr);
+            return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        }
+
+        function generateICS() {
+            // 2. Build the ICS File Content
+            const icsContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//BulkOrderSystem//HTML//EN",
+                "BEGIN:VEVENT",
+                "UID:" + new Date().getTime() + "@bulkorder",
+                "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z",
+                "DTSTART:" + formatToICSDate(start),
+                "DTEND:" + formatToICSDate(end),
+                "SUMMARY:" + title,
+                "DESCRIPTION:" + desc,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+
+            // 3. Trigger Download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', title.replace(/\s+/g, '_') + '.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            document.getElementById('status').innerText = "File downloaded! Open it to save to your calendar.";
+        }
+
+        // Auto-run on load
+        if(start && end) {
+            setTimeout(generateICS, 1000);
+        } else {
+            document.getElementById('status').innerText = "Error: Missing date information.";
+        }
+    </script>
+</body>
+</html>
