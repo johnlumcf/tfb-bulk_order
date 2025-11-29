@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Save Event</title>
+    <title>Add to Calendar</title>
     <style>
         body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f2f2f7; margin: 0; padding: 20px; text-align: center; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
         h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 22px; }
         p { color: #8e8e93; margin-bottom: 25px; font-size: 15px; }
-        .btn { background: #007AFF; color: white; padding: 16px 0; border-radius: 14px; text-decoration: none; font-weight: 600; display: block; width: 100%; font-size: 17px; }
+        .btn { background: #007AFF; color: white; padding: 18px 0; border-radius: 14px; text-decoration: none; font-weight: 600; display: block; width: 100%; font-size: 18px; }
         .btn:active { opacity: 0.8; transform: scale(0.98); }
     </style>
 </head>
 <body>
     <div class="card">
         <h1 id="title">Event</h1>
-        <p id="loc">Loading...</p>
+        <p id="loc">Ready to sync.</p>
         <a id="btn" href="#" class="btn">Add to Calendar</a>
     </div>
 
@@ -34,9 +34,8 @@
 
         if (dateStr) {
             const s = new Date(dateStr);
-            const e = new Date(s.getTime() + 3600000); // 1 Hour Duration
+            const e = new Date(s.getTime() + 3600000); // 1 Hour
 
-            // Create ICS content
             const ics = [
                 "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//HQSystem//EN",
                 "BEGIN:VEVENT",
@@ -57,8 +56,7 @@
             b.href = url;
             b.download = title.replace(/[^a-z0-9]/gi, '_') + ".ics";
             
-            // Auto-trigger
-            setTimeout(() => b.click(), 1000);
+            // REMOVED AUTO-CLICK: Safari requires user to tap the button.
         }
     </script>
 </body>
