@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adding to Calendar...</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; padding: 40px; background: #f2f2f7; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { font-size: 22px; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; }
+        .btn { background: #007AFF; color: white; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>📅 Save to Device</h1>
+        <p id="info">Preparing your calendar event...</p>
+        <a id="downloadBtn" href="#" class="btn">Click to Add to Calendar</a>
+    </div>
+
+    <script>
+        // 1. Get Params
+        const params = new URLSearchParams(window.location.search);
+        const title = params.get('title') || "Reminder";
+        const desc = params.get('desc') || "";
+        const dateStr = params.get('date');
+
+        document.getElementById('info').innerText = title;
+
+        function formatICSDate(d) {
+            return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        }
+
+        if (dateStr) {
+            // Calculate Start and End (Default 1 hour duration)
+            const startDate = new Date(dateStr);
+            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // +1 Hour
+
+            // Build ICS File
+            const icsData = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//HQReminder//EN",
+                "BEGIN:VEVENT",
+                "UID:" + Date.now() + "@hq",
+                "DTSTAMP:" + formatICSDate(new Date()),
+                "DTSTART:" + formatICSDate(startDate),
+                "DTEND:" + formatICSDate(endDate),
+                "SUMMARY:" + title,
+                "DESCRIPTION:" + desc,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+
+            // Create Download Blob
+            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const btn = document.getElementById('downloadBtn');
+            btn.href = url;
+            btn.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".ics";
+            
+            // Auto-click for instant prompt
+            setTimeout(() => btn.click(), 500);
+        }
+    </script>
+</body>
+</html>
