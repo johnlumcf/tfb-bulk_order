@@ -3,30 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sync Calendar</title>
+    <title>Sync Order</title>
     <style>
-        body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f2f2f7; margin: 0; padding: 20px; text-align: center; }
-        .card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 22px; }
-        p { color: #8e8e93; margin-bottom: 30px; font-size: 15px; }
+        body { font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f2f2f7; margin: 0; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        h1 { margin: 0 0 5px 0; color: #1c1c1e; font-size: 22px; }
+        .loc { color: #8e8e93; font-weight: 600; font-size: 13px; text-transform: uppercase; margin-bottom: 25px; display: block; }
         
-        .btn { 
-            background: #007AFF; color: white; padding: 18px 0; 
-            border-radius: 16px; text-decoration: none; font-weight: 700; 
-            display: block; width: 100%; font-size: 18px; 
-            box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+        /* APPLE BUTTON */
+        .btn-ios { 
+            background: #007AFF; color: white; padding: 16px; 
+            border-radius: 14px; text-decoration: none; font-weight: 700; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; font-size: 16px; margin-bottom: 12px;
+            box-sizing: border-box;
         }
-        .btn:active { transform: scale(0.98); }
+        
+        /* GOOGLE BUTTON */
+        .btn-google { 
+            background: white; color: #3c4043; padding: 15px; 
+            border-radius: 14px; text-decoration: none; font-weight: 600; 
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; font-size: 16px; border: 1px solid #dadce0;
+            box-sizing: border-box;
+        }
+
+        .icon { font-size: 20px; }
+        .divider { font-size: 12px; color: #ccc; margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1 id="title">Loading...</h1>
-        <p id="loc">Please wait</p>
-        
-        <!-- Button links to Google Script File Generator -->
-        <a id="downloadBtn" href="#" class="btn">Add to Calendar</a>
+        <span id="loc" class="loc">Please wait</span>
+
+        <!-- BUTTON 1: iOS / File -->
+        <a id="iosBtn" href="#" class="btn-ios">
+            <span class="icon">🍎</span> Apple Calendar
+        </a>
+
+        <div class="divider">OR</div>
+
+        <!-- BUTTON 2: Google / Android -->
+        <a id="googleBtn" href="#" class="btn-google">
+            <span class="icon">📅</span> Google Calendar
+        </a>
     </div>
 
     <script>
@@ -37,24 +59,37 @@
         const loc = params.get('loc') || "";
         const dateStr = params.get('dt');
 
-        // 2. Update UI
         document.getElementById('title').innerText = title;
         document.getElementById('loc').innerText = loc ? "📍 " + loc : "Syncing...";
 
-        // 3. BUILD THE DOWNLOAD LINK (Using your Google Script)
-        
-        // ⚠️ PASTE YOUR GOOGLE DEPLOYMENT URL HERE ⚠️
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwj4_lKSrs-N1yT5w700llOaDx_ZftqvLyLdjRkPKqDVmIVO_STod19okAcI9g22XWMlw/exec"; 
-        
+        // 2. PASTE YOUR GOOGLE SCRIPT URL HERE
+        const SCRIPT_URL = "https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXX/exec"; 
+
         if (dateStr) {
-            const fileUrl = SCRIPT_URL + 
+            const startDate = new Date(dateStr);
+            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // 1 Hour
+
+            // --- A. GOOGLE CALENDAR DEEP LINK (The "Auto Inject" feel) ---
+            // Format: YYYYMMDDTHHmmssZ
+            const fmt = d => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+            
+            const gLink = `https://www.google.com/calendar/render?action=TEMPLATE` + 
+                          `&text=${encodeURIComponent(title)}` + 
+                          `&details=${encodeURIComponent(desc)}` + 
+                          `&location=${encodeURIComponent(loc)}` + 
+                          `&dates=${fmt(startDate)}/${fmt(endDate)}`;
+            
+            document.getElementById('googleBtn').href = gLink;
+
+            // --- B. APPLE / ICS FILE LINK ---
+            const fileLink = SCRIPT_URL + 
                 "?mode=ics" +
                 "&title=" + encodeURIComponent(title) +
                 "&desc=" + encodeURIComponent(desc) +
                 "&loc=" + encodeURIComponent(loc) +
                 "&date=" + encodeURIComponent(dateStr);
 
-            document.getElementById('downloadBtn').href = fileUrl;
+            document.getElementById('iosBtn').href = fileLink;
         }
     </script>
 </body>
