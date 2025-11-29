@@ -10,7 +10,6 @@
         h1 { margin: 0 0 10px 0; color: #1c1c1e; font-size: 22px; }
         p { color: #8e8e93; margin-bottom: 30px; font-size: 15px; }
         
-        /* THE BUTTON */
         .btn { 
             background: #007AFF; color: white; padding: 18px 0; 
             border-radius: 16px; text-decoration: none; font-weight: 700; 
@@ -26,48 +25,37 @@
         <h1 id="title">Loading...</h1>
         <p id="loc">Please wait</p>
         
-        <!-- This button will point to a Real File on Agical Servers -->
+        <!-- Button links to Google Script File Generator -->
         <a id="downloadBtn" href="#" class="btn">Add to Calendar</a>
     </div>
 
     <script>
-        // 1. Get Details from URL
+        // 1. Get Params
         const params = new URLSearchParams(window.location.search);
         const title = params.get('t') || "Order";
         const desc = params.get('d') || "";
         const loc = params.get('loc') || "";
         const dateStr = params.get('dt');
 
-        // 2. Update Text on Screen
+        // 2. Update UI
         document.getElementById('title').innerText = title;
         document.getElementById('loc').innerText = loc ? "📍 " + loc : "Syncing...";
 
-        // 3. Format Date for Agical API
-        // We need 1 Hour duration calculated
-        let startIso = "";
-        let endIso = "";
-
+        // 3. BUILD THE DOWNLOAD LINK (Using your Google Script)
+        
+        // ⚠️ PASTE YOUR GOOGLE DEPLOYMENT URL HERE ⚠️
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwj4_lKSrs-N1yT5w700llOaDx_ZftqvLyLdjRkPKqDVmIVO_STod19okAcI9g22XWMlw/exec"; 
+        
         if (dateStr) {
-            const startDate = new Date(dateStr);
-            const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // +1 Hour
-            
-            // Format: YYYY-MM-DDTHH:mm:ss
-            startIso = startDate.toISOString().split('.')[0];
-            endIso = endDate.toISOString().split('.')[0];
+            const fileUrl = SCRIPT_URL + 
+                "?mode=ics" +
+                "&title=" + encodeURIComponent(title) +
+                "&desc=" + encodeURIComponent(desc) +
+                "&loc=" + encodeURIComponent(loc) +
+                "&date=" + encodeURIComponent(dateStr);
+
+            document.getElementById('downloadBtn').href = fileUrl;
         }
-
-        // 4. Construct the Real File Link (Agical API)
-        // This creates a physical .ics file on their server that phones TRUST.
-        const agicalUrl = `https://agical.io/daily/event` +
-                          `?summary=${encodeURIComponent(title)}` +
-                          `&description=${encodeURIComponent(desc)}` +
-                          `&location=${encodeURIComponent(loc)}` +
-                          `&startdt=${encodeURIComponent(startIso)}` +
-                          `&enddt=${encodeURIComponent(endIso)}`;
-
-        // 5. Attach to Button
-        document.getElementById('downloadBtn').href = agicalUrl;
-
     </script>
 </body>
 </html>
